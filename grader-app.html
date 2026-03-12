@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>자동 채점</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Jua',sans-serif;background:#F0F4FF;min-height:100%;max-width:520px;margin:0 auto;-webkit-overflow-scrolling:touch;}
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;min-height:100vh;}
+
+/* ═══ 시작 화면 ═══ */
+#startScreen{background:linear-gradient(160deg,#1a1a2e,#0f3460);align-items:center;justify-content:center;padding:60px 28px 48px;text-align:center;}
+.logo{font-size:76px;animation:float 3s ease-in-out infinite;display:block;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.app-title{font-size:30px;color:#fff;margin:16px 0 6px;}
+.app-sub{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:36px;}
+.start-box{background:rgba(255,255,255,0.09);border:1.5px solid rgba(255,255,255,0.18);border-radius:24px;padding:28px 22px;width:100%;margin-bottom:18px;}
+.field-label{font-size:14px;color:rgba(255,255,255,0.6);text-align:left;display:block;margin-bottom:10px;}
+.name-input{width:100%;padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-family:'Jua',sans-serif;font-size:22px;text-align:center;outline:none;-webkit-appearance:none;}
+.name-input::placeholder{color:rgba(255,255,255,0.3);}
+.name-input:focus{border-color:rgba(255,255,255,0.55);}
+.btn-start{width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,#FF6363,#F5A623);font-family:'Jua',sans-serif;font-size:22px;color:#fff;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;box-shadow:0 8px 24px rgba(255,99,99,0.4);}
+.btn-start:active{opacity:0.85;transform:scale(0.98);}
+
+/* ═══ 과목 선택 ═══ */
+#subjectScreen{background:#F0F4FF;padding-bottom:40px;}
+.top-header{background:linear-gradient(160deg,#1a1a2e,#0f3460);padding:52px 22px 24px;color:#fff;}
+.student-name-big{font-size:24px;margin-bottom:4px;}
+.student-hint{font-size:13px;color:rgba(255,255,255,0.55);}
+.total-box{margin:0 18px;background:#fff;border-radius:20px;padding:18px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.09);display:flex;align-items:center;justify-content:space-between;transform:translateY(-22px);}
+.total-label{font-size:14px;color:#8892a4;}
+.total-num{font-size:34px;color:#1a1a2e;}
+.total-sub{font-size:12px;color:#a0aec0;}
+.section-label{font-size:15px;color:#718096;padding:0 20px 12px;margin-top:-8px;}
+.subject-list{display:flex;flex-direction:column;gap:12px;padding:0 18px;}
+.subj-btn{background:#fff;border-radius:18px;padding:18px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 14px rgba(0,0,0,0.08);border:none;width:100%;text-align:left;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;position:relative;overflow:hidden;}
+.subj-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:18px 0 0 18px;}
+.subj-btn.korean::before{background:#FF6363;}
+.subj-btn.social::before{background:#3EC9C1;}
+.subj-btn.math::before{background:#4A90D9;}
+.subj-btn.science::before{background:#6DBF8A;}
+.subj-btn.english::before{background:#F5A623;}
+.subj-btn:active{opacity:0.82;transform:scale(0.98);}
+.subj-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.subj-info{flex:1;}
+.subj-name{font-size:20px;color:#1a1a2e;}
+.subj-status{font-size:12px;color:#a0aec0;margin-top:2px;}
+.subj-chip{padding:6px 14px;border-radius:20px;font-size:16px;color:#fff;display:none;}
+.arrow-icon{font-size:20px;color:#cbd5e0;}
+.btn-final{margin:20px 18px 0;width:calc(100% - 36px);padding:18px;border:none;border-radius:16px;background:linear-gradient(135deg,#1a1a2e,#0f3460);font-family:'Jua',sans-serif;font-size:19px;color:#fff;cursor:pointer;display:none;box-shadow:0 6px 20px rgba(0,0,0,0.18);-webkit-appearance:none;touch-action:manipulation;}
+.btn-final:active{opacity:0.85;transform:scale(0.98);}
+
+/* ═══ 답안 입력 ═══ */
+#answerScreen{background:#F0F4FF;}
+.ans-header{background:#fff;padding:52px 18px 16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+.btn-back{width:44px;height:44px;border-radius:12px;border:none;background:#f0f4ff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-appearance:none;touch-action:manipulation;}
+.btn-back:active{background:#e0e8ff;}
+.subj-pill{flex:1;padding:10px 16px;border-radius:20px;font-size:18px;color:#fff;}
+.subj-pill.english{color:#1a1a2e;}
+.ans-count-badge{font-size:14px;color:#a0aec0;white-space:nowrap;}
+.ans-scroll{flex:1;overflow-y:auto;padding:16px 18px 0;-webkit-overflow-scrolling:touch;}
+.guide-box{background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.guide-icon{font-size:24px;}
+.guide-text{font-size:13px;color:#4a5568;line-height:1.5;}
+.guide-text b{color:#1a1a2e;}
+.q-card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:flex;align-items:center;gap:10px;}
+.q-num-badge{width:32px;height:32px;border-radius:50%;background:#f0f4ff;color:#667eea;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all 0.2s;}
+.q-num-badge.done{background:#667eea;color:#fff;}
+.q-num-badge.correct{background:#6DBF8A;color:#fff;}
+.q-num-badge.wrong{background:#FF6363;color:#fff;}
+.choice-group{display:flex;gap:6px;flex:1;}
+.choice-btn{flex:1;height:48px;border-radius:12px;border:2px solid #e2e8f0;background:#f8faff;font-family:'Jua',sans-serif;font-size:20px;color:#b0bec5;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;touch-action:manipulation;min-width:44px;min-height:44px;transition:all 0.12s;}
+.choice-btn:active{transform:scale(0.88);}
+.choice-btn.selected{border-color:#667eea;background:#667eea;color:#fff;}
+.choice-btn.correct{border-color:#6DBF8A;background:#6DBF8A;color:#fff;}
+.choice-btn.wrong{border-color:#FF6363;background:#FF6363;color:#fff;}
+.choice-btn.answer-show{border-color:#6DBF8A;background:#f0fff5;color:#6DBF8A;}
+.choice-btn:disabled{cursor:default;}
+.q-result{font-size:22px;flex-shrink:0;width:28px;text-align:center;}
+.ans-footer{background:#fff;padding:14px 18px 40px;box-shadow:0 -2px 10px rgba(0,0,0,0.07);}
+.progress-row{display:flex;justify-content:space-between;font-size:13px;color:#a0aec0;margin-bottom:6px;}
+.prog-track{background:#edf2f7;border-radius:8px;height:7px;overflow:hidden;margin-bottom:14px;}
+.prog-fill{height:100%;border-radius:8px;transition:width 0.35s;}
+.btn-grade{width:100%;padding:18px;border:none;border-radius:16px;font-family:'Jua',sans-serif;font-size:20px;color:#fff;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;letter-spacing:1px;}
+.btn-grade:disabled{background:#cbd5e0!important;box-shadow:none!important;cursor:not-allowed;}
+.btn-grade:not(:disabled):active{opacity:0.85;transform:scale(0.98);}
+
+/* ═══ 결과 화면 ═══ */
+#resultScreen{background:#F0F4FF;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.result-hero{padding:52px 24px 36px;text-align:center;position:relative;overflow:hidden;}
+.result-hero::after{content:'';position:absolute;inset:0;opacity:0.07;background:repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.5) 18px,rgba(255,255,255,0.5) 36px);}
+.hero-emoji{font-size:68px;display:block;animation:pop 0.45s cubic-bezier(0.34,1.56,0.64,1);position:relative;z-index:1;}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.hero-name{font-size:18px;color:rgba(255,255,255,0.85);margin:10px 0 4px;position:relative;z-index:1;}
+.hero-score{font-size:68px;color:#fff;line-height:1;text-shadow:0 4px 16px rgba(0,0,0,0.15);position:relative;z-index:1;}
+.hero-total{font-size:16px;color:rgba(255,255,255,0.7);margin-top:4px;position:relative;z-index:1;}
+.hero-msg{display:inline-block;margin-top:14px;background:rgba(255,255,255,0.2);border-radius:20px;padding:9px 22px;font-size:15px;color:#fff;position:relative;z-index:1;}
+.result-body{padding:0 18px 24px;margin-top:-20px;}
+.subj-result-card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 3px 16px rgba(0,0,0,0.08);}
+.src-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.src-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.src-name{font-size:18px;color:#1a1a2e;flex:1;}
+.src-score{font-size:22px;}
+.src-bar{background:#edf2f7;border-radius:8px;height:9px;overflow:hidden;margin-bottom:12px;}
+.src-bar-fill{height:100%;border-radius:8px;transition:width 1.1s cubic-bezier(0.4,0,0.2,1);}
+.mini-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.mini-cell{border-radius:8px;padding:5px 2px;text-align:center;}
+.mini-num{font-size:10px;color:#a0aec0;}
+.mini-ans{font-size:15px;font-weight:700;}
+.mini-cell.ok{background:#f0fff5;} .mini-cell.ok .mini-ans{color:#2f9e5e;}
+.mini-cell.bad{background:#fff5f5;} .mini-cell.bad .mini-ans{color:#e53e3e;}
+.wrong-card{background:#fff;border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 3px 16px rgba(0,0,0,0.08);}
+.wrong-title{font-size:17px;color:#e53e3e;margin-bottom:14px;}
+.wrong-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#fff5f5;margin-bottom:8px;}
+.wrong-sub{font-size:11px;color:#fff;padding:3px 8px;border-radius:8px;flex-shrink:0;}
+.wrong-qnum{font-size:14px;color:#4a5568;flex:1;}
+.wrong-detail{font-size:13px;color:#718096;}
+.my-ans{color:#e53e3e;font-weight:700;}
+.cor-ans{color:#2f9e5e;font-weight:700;}
+
+/* 전송 상태 */
+.upload-box{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;box-shadow:0 3px 16px rgba(0,0,0,0.08);text-align:center;}
+.upload-status{font-size:16px;color:#4a5568;margin-top:8px;}
+.upload-icon{font-size:40px;}
+.upload-sending{color:#4A90D9;}
+.upload-ok{color:#6DBF8A;}
+.upload-fail{color:#FF6363;}
+
+.result-btns{padding:0 18px 48px;display:flex;flex-direction:column;gap:10px;}
+.btn-redo{padding:17px;border:none;border-radius:16px;font-family:'Jua',sans-serif;font-size:19px;color:#fff;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;}
+.btn-redo:active{opacity:0.85;transform:scale(0.98);}
+.btn-home2{padding:15px;border:2px solid #e2e8f0;border-radius:16px;background:#fff;font-family:'Jua',sans-serif;font-size:17px;color:#4a5568;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;}
+.btn-home2:active{background:#f0f4ff;}
+</style>
+</head>
+<body>
+
+<!-- 시작 -->
+<div id="startScreen" class="screen active">
+  <span class="logo">📝</span>
+  <div class="app-title">자동 채점 프로그램</div>
+  <div class="app-sub">5과목 × 25문항 · 즉시 채점</div>
+  <div class="start-box">
+    <label class="field-label">👤 학생 이름</label>
+    <input type="text" class="name-input" id="nameInput"
+      placeholder="이름 입력" maxlength="10"
+      autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <button class="btn-start" onclick="gotoSubject()">시험 시작 🚀</button>
+</div>
+
+<!-- 과목 선택 -->
+<div id="subjectScreen" class="screen">
+  <div class="top-header">
+    <div class="student-name-big" id="welcomeName"></div>
+    <div class="student-hint">과목을 눌러서 답안을 입력하세요</div>
+  </div>
+  <div class="total-box">
+    <div>
+      <div class="total-label">전체 총점</div>
+      <div class="total-sub" id="totalDone">0 / 5과목 완료</div>
+    </div>
+    <div style="text-align:right">
+      <div class="total-num" id="totalScore">-</div>
+      <div class="total-sub">/ 125점</div>
+    </div>
+  </div>
+  <div class="section-label">📚 과목 선택</div>
+  <div class="subject-list">
+    <button class="subj-btn korean" onclick="gotoAnswer('korean')">
+      <div class="subj-icon" style="background:#fff0f0">📖</div>
+      <div class="subj-info"><div class="subj-name">국어</div><div class="subj-status" id="st-korean">아직 미응시</div></div>
+      <div class="subj-chip" id="chip-korean" style="background:#FF6363"></div><div class="arrow-icon">›</div>
+    </button>
+    <button class="subj-btn social" onclick="gotoAnswer('social')">
+      <div class="subj-icon" style="background:#f0fffe">🌍</div>
+      <div class="subj-info"><div class="subj-name">사회</div><div class="subj-status" id="st-social">아직 미응시</div></div>
+      <div class="subj-chip" id="chip-social" style="background:#3EC9C1"></div><div class="arrow-icon">›</div>
+    </button>
+    <button class="subj-btn math" onclick="gotoAnswer('math')">
+      <div class="subj-icon" style="background:#f0f6ff">🔢</div>
+      <div class="subj-info"><div class="subj-name">수학</div><div class="subj-status" id="st-math">아직 미응시</div></div>
+      <div class="subj-chip" id="chip-math" style="background:#4A90D9"></div><div class="arrow-icon">›</div>
+    </button>
+    <button class="subj-btn science" onclick="gotoAnswer('science')">
+      <div class="subj-icon" style="background:#f0fff5">🔬</div>
+      <div class="subj-info"><div class="subj-name">과학</div><div class="subj-status" id="st-science">아직 미응시</div></div>
+      <div class="subj-chip" id="chip-science" style="background:#6DBF8A"></div><div class="arrow-icon">›</div>
+    </button>
+    <button class="subj-btn english" onclick="gotoAnswer('english')">
+      <div class="subj-icon" style="background:#fffbf0">🔤</div>
+      <div class="subj-info"><div class="subj-name">영어</div><div class="subj-status" id="st-english">아직 미응시</div></div>
+      <div class="subj-chip" id="chip-english" style="background:#F5A623;color:#1a1a2e"></div><div class="arrow-icon">›</div>
+    </button>
+  </div>
+  <button class="btn-final" id="btnFinal" onclick="submitAll()">✅ 전체 제출하기</button>
+</div>
+
+<!-- 답안 입력 -->
+<div id="answerScreen" class="screen">
+  <div class="ans-header">
+    <button class="btn-back" onclick="backToSubject()">←</button>
+    <div class="subj-pill" id="ansPill"></div>
+    <div class="ans-count-badge" id="ansCountBadge">0/25</div>
+  </div>
+  <div class="ans-scroll" id="ansScroll">
+    <div class="guide-box">
+      <div class="guide-icon">👆</div>
+      <div class="guide-text">각 문제의 <b>정답 번호 버튼을 누르세요.</b><br>같은 번호를 다시 누르면 취소됩니다.</div>
+    </div>
+    <div id="qCardList"></div>
+  </div>
+  <div class="ans-footer">
+    <div class="progress-row">
+      <span id="footerLeft">0문제 선택됨</span>
+      <span id="footerRight">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <button class="btn-grade" id="btnGrade" onclick="gradeNow()" disabled>채점하기 ✓</button>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div id="resultScreen" class="screen">
+  <div class="result-hero" id="rHero">
+    <span class="hero-emoji" id="rEmoji"></span>
+    <div class="hero-name" id="rName"></div>
+    <div class="hero-score" id="rScore"></div>
+    <div class="hero-total" id="rTotal"></div>
+    <div class="hero-msg" id="rMsg"></div>
+  </div>
+  <div class="result-body">
+    <!-- 구글 시트 전송 상태 -->
+    <div class="upload-box" id="uploadBox" style="display:none">
+      <div class="upload-icon" id="uploadIcon">📤</div>
+      <div class="upload-status" id="uploadStatus">결과를 저장하는 중...</div>
+    </div>
+    <div id="rCards"></div>
+    <div class="wrong-card" id="wrongCard" style="display:none">
+      <div class="wrong-title">✏️ 틀린 문제</div>
+      <div id="wrongList"></div>
+    </div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-redo" id="btnRedo">다시 풀기 🔄</button>
+    <button class="btn-home2" onclick="backToSubject()">← 과목 선택으로</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// 구글 시트 연동 URL
+// ══════════════════════════════
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxnvS4OODvBSxZBwZhreR71S9zYdPfOtpl4THKJoyQPNsRQZ1HRnYv7FKX_70RV6V9I/exec';
+
+// ══════════════════════════════
+// 답안지
+// ══════════════════════════════
+const KEYS = {
+  korean:  [2,4,3,1,1,3,4,4,4,2,4,1,4,3,1,3,3,4,2,2,1,2,4,1,3],
+  social:  [3,4,4,3,2,1,2,3,1,1,4,1,2,2,4,3,1,3,4,3,1,2,1,4,3],
+  math:    [3,2,2,3,1,1,1,3,4,2,4,3,4,1,4,3,1,4,1,4,2,4,3,2,2],
+  science: [4,2,4,4,3,3,2,2,4,4,3,3,1,4,3,4,3,4,1,3,2,1,2,1,2],
+  english: [2,3,1,3,1,2,3,2,1,2,2,4,3,2,4,4,3,3,2,3,2,4,1,1,4],
+};
+
+const INFO = {
+  korean:  {name:'국어', icon:'📖', color:'#FF6363', bg:'linear-gradient(135deg,#FF6363,#ee5a24)', ib:'#fff0f0'},
+  social:  {name:'사회', icon:'🌍', color:'#3EC9C1', bg:'linear-gradient(135deg,#3EC9C1,#00b894)', ib:'#f0fffe'},
+  math:    {name:'수학', icon:'🔢', color:'#4A90D9', bg:'linear-gradient(135deg,#4A90D9,#0984e3)', ib:'#f0f6ff'},
+  science: {name:'과학', icon:'🔬', color:'#6DBF8A', bg:'linear-gradient(135deg,#6DBF8A,#55efc4)', ib:'#f0fff5'},
+  english: {name:'영어', icon:'🔤', color:'#F5A623', bg:'linear-gradient(135deg,#F5A623,#fdcb6e)', ib:'#fffbf0'},
+};
+const SUBJS = ['korean','social','math','science','english'];
+
+let studentName='', curSubj=null, scores={}, inputs={}, graded={};
+
+// ── 화면 전환 ──
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── 시작 ──
+function gotoSubject(){
+  const n=document.getElementById('nameInput').value.trim();
+  if(!n){alert('이름을 입력해 주세요!');return;}
+  studentName=n;
+  document.getElementById('welcomeName').textContent=n+' 학생 👋';
+  refreshSubjectScreen();
+  show('subjectScreen');
+}
+
+function backToSubject(){refreshSubjectScreen();show('subjectScreen');}
+
+// ── 과목 화면 갱신 ──
+function refreshSubjectScreen(){
+  let total=0,done=0;
+  SUBJS.forEach(s=>{
+    const chip=document.getElementById('chip-'+s);
+    const st=document.getElementById('st-'+s);
+    if(scores[s]!==undefined){
+      done++;total+=scores[s].correct;
+      chip.style.display='block';
+      chip.textContent=scores[s].correct+'/25';
+      st.textContent=scores[s].correct+'문제 정답';
+    } else {
+      chip.style.display='none';
+      st.textContent='아직 미응시';
+    }
+  });
+  document.getElementById('totalDone').textContent=done+' / 5과목 완료';
+  document.getElementById('totalScore').textContent=done?total:'-';
+
+  // 5과목 모두 완료시 제출 버튼 표시
+  const btnFinal=document.getElementById('btnFinal');
+  if(done===5){
+    btnFinal.style.display='block';
+    btnFinal.textContent='✅ 전체 제출하기 ('+total+'/125점)';
+  } else if(done>0){
+    btnFinal.style.display='block';
+    btnFinal.textContent='📊 지금까지 제출하기 ('+done+'/5과목)';
+  } else {
+    btnFinal.style.display='none';
+  }
+}
+
+// ── 답안 입력 ──
+function gotoAnswer(subj){
+  curSubj=subj;
+  if(!inputs[subj])inputs[subj]=Array(25).fill(0);
+  buildCards(subj);
+  show('answerScreen');
+}
+
+function buildCards(subj){
+  const info=INFO[subj];
+  const isGraded=!!graded[subj];
+  const ans=inputs[subj];
+  const key=KEYS[subj];
+
+  document.getElementById('ansPill').textContent=info.icon+' '+info.name;
+  document.getElementById('ansPill').style.background=info.bg;
+  document.getElementById('ansPill').className='subj-pill '+subj;
+  document.getElementById('progFill').style.background=info.bg;
+  const btnG=document.getElementById('btnGrade');
+  btnG.style.background=info.bg;
+  btnG.style.boxShadow='0 6px 20px '+info.color+'55';
+
+  let html='';
+  for(let i=0;i<25;i++){
+    const sel=ans[i];
+    let numCls=sel?'done':'';
+    if(isGraded&&sel)numCls=(sel===key[i])?'correct':'wrong';
+    const resultIcon=isGraded&&sel?(sel===key[i]?'⭕':'❌'):'';
+    let btns='';
+    for(let n=1;n<=5;n++){
+      let cls='';
+      if(isGraded){
+        if(n===key[i]&&n===sel)cls='correct';
+        else if(n===sel)cls='wrong';
+        else if(n===key[i])cls='answer-show';
+      } else {
+        if(n===sel)cls='selected';
+      }
+      btns+=`<button class="choice-btn ${cls}" onclick="selectAns(${i},${n})" ${isGraded?'disabled':''}>${n}</button>`;
+    }
+    html+=`<div class="q-card" id="qcard-${i}">
+      <div class="q-num-badge ${numCls}" id="qbadge-${i}">${i+1}</div>
+      <div class="choice-group">${btns}</div>
+      <div class="q-result" id="qresult-${i}">${resultIcon}</div>
+    </div>`;
+  }
+  document.getElementById('qCardList').innerHTML=html;
+  updateFooter(subj);
+}
+
+function selectAns(qIdx,num){
+  if(graded[curSubj])return;
+  const ans=inputs[curSubj];
+  ans[qIdx]=(ans[qIdx]===num)?0:num;
+  const card=document.getElementById('qcard-'+qIdx);
+  card.querySelectorAll('.choice-btn').forEach((b,i)=>{
+    b.className='choice-btn'+(ans[qIdx]===i+1?' selected':'');
+  });
+  const badge=document.getElementById('qbadge-'+qIdx);
+  badge.className='q-num-badge'+(ans[qIdx]?' done':'');
+  updateFooter(curSubj);
+  if(ans[qIdx]&&qIdx<24){
+    setTimeout(()=>{
+      const next=document.getElementById('qcard-'+(qIdx+1));
+      if(next)next.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },120);
+  }
+}
+
+function updateFooter(subj){
+  const ans=inputs[subj]||[];
+  const filled=ans.filter(v=>v>0).length;
+  const pct=Math.round(filled/25*100);
+  document.getElementById('ansCountBadge').textContent=filled+'/25';
+  document.getElementById('footerLeft').textContent=filled+'문제 선택됨';
+  document.getElementById('footerRight').textContent=pct+'%';
+  document.getElementById('progFill').style.width=pct+'%';
+  const btn=document.getElementById('btnGrade');
+  if(graded[subj]){btn.disabled=true;btn.textContent='채점 완료 ✓';}
+  else{btn.disabled=filled<25;btn.textContent='채점하기 ✓';}
+}
+
+// ── 채점 ──
+function gradeNow(){
+  const subj=curSubj,ans=inputs[subj],key=KEYS[subj];
+  let correct=0;
+  ans.forEach((v,i)=>{if(v===key[i])correct++;});
+  scores[subj]={correct,answers:[...ans]};
+  graded[subj]=true;
+  buildCards(subj);
+  buildSingleResult(subj);
+  show('resultScreen');
+}
+
+// ── 단일 과목 결과 ──
+function buildSingleResult(subj){
+  const info=INFO[subj],sc=scores[subj];
+  const pct=Math.round(sc.correct/25*100);
+  document.getElementById('rHero').style.background=info.bg;
+  const {emoji,msg}=getMsg(pct);
+  document.getElementById('rEmoji').textContent=emoji;
+  document.getElementById('rName').textContent=studentName+' · '+info.icon+' '+info.name;
+  document.getElementById('rScore').textContent=sc.correct+'점';
+  document.getElementById('rTotal').textContent='25문제 중 '+sc.correct+'개 정답';
+  document.getElementById('rMsg').textContent=msg;
+  document.getElementById('rCards').innerHTML=makeCard(subj);
+  buildWrong([subj]);
+
+  // 업로드 박스 숨김 (과목별 결과는 전체 제출 시에만 전송)
+  document.getElementById('uploadBox').style.display='none';
+
+  const btnR=document.getElementById('btnRedo');
+  btnR.style.background=info.bg;
+  btnR.style.boxShadow='0 6px 20px '+info.color+'55';
+  btnR.style.display='block';
+  btnR.onclick=()=>redoSubj(subj);
+  animateBars();
+}
+
+// ── 전체 제출 (구글 시트 전송) ──
+function submitAll(){
+  const done=SUBJS.filter(s=>scores[s]);
+  if(done.length===0){alert('먼저 한 과목이라도 채점해 주세요!');return;}
+
+  let total=0;
+  done.forEach(s=>total+=scores[s].correct);
+  const pct=Math.round(total/(done.length*25)*100);
+
+  // 결과 화면 구성
+  document.getElementById('rHero').style.background='linear-gradient(160deg,#1a1a2e,#0f3460)';
+  const {emoji,msg}=getMsg(pct);
+  document.getElementById('rEmoji').textContent=emoji;
+  document.getElementById('rName').textContent=studentName+' 학생 · 전체 성적';
+  document.getElementById('rScore').textContent=total+'점';
+  document.getElementById('rTotal').textContent=(done.length*25)+'문제 중 '+total+'개 정답';
+  document.getElementById('rMsg').textContent=msg;
+  document.getElementById('rCards').innerHTML=done.map(s=>makeCard(s)).join('');
+  buildWrong(done);
+
+  // 다시풀기 숨김
+  document.getElementById('btnRedo').style.display='none';
+  animateBars();
+  show('resultScreen');
+
+  // 구글 시트로 전송
+  sendToSheet(done, total);
+}
+
+function sendToSheet(done, total){
+  const uploadBox=document.getElementById('uploadBox');
+  const uploadIcon=document.getElementById('uploadIcon');
+  const uploadStatus=document.getElementById('uploadStatus');
+
+  uploadBox.style.display='block';
+  uploadIcon.textContent='📤';
+  uploadStatus.textContent='결과를 저장하는 중...';
+  uploadStatus.className='upload-status upload-sending';
+
+  const payload={
+    name: studentName,
+    korean:  scores.korean  ? scores.korean.correct  : null,
+    social:  scores.social  ? scores.social.correct  : null,
+    math:    scores.math    ? scores.math.correct    : null,
+    science: scores.science ? scores.science.correct : null,
+    english: scores.english ? scores.english.correct : null,
+    total:   total
+  };
+
+  // JSONP 방식으로 전송 (CORS 완전 우회)
+  const cbName = 'cb_' + Date.now();
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const script = document.createElement('script');
+
+  const timer = setTimeout(()=>{
+    delete window[cbName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+    uploadIcon.textContent='❌';
+    uploadStatus.textContent='저장 실패 - 인터넷 연결을 확인해 주세요';
+    uploadStatus.className='upload-status upload-fail';
+  }, 10000);
+
+  window[cbName] = function(res){
+    clearTimeout(timer);
+    delete window[cbName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+    uploadIcon.textContent='✅';
+    uploadStatus.textContent='구글 시트에 저장 완료! 🎉';
+    uploadStatus.className='upload-status upload-ok';
+  };
+
+  script.onerror = function(){
+    clearTimeout(timer);
+    delete window[cbName];
+    uploadIcon.textContent='❌';
+    uploadStatus.textContent='저장 실패 - 다시 시도해 주세요';
+    uploadStatus.className='upload-status upload-fail';
+  };
+
+  script.src = SHEET_URL + '?callback=' + cbName + '&data=' + encoded;
+  document.body.appendChild(script);
+}
+
+// ── 카드/틀린문제/애니 ──
+function makeCard(subj){
+  const info=INFO[subj],sc=scores[subj],key=KEYS[subj];
+  const pct=Math.round(sc.correct/25*100);
+  let mini='';
+  for(let i=0;i<25;i++){
+    const ok=sc.answers[i]===key[i];
+    mini+=`<div class="mini-cell ${ok?'ok':'bad'}"><div class="mini-num">${i+1}</div><div class="mini-ans">${sc.answers[i]||'?'}</div></div>`;
+  }
+  return `<div class="subj-result-card">
+    <div class="src-top">
+      <div class="src-icon" style="background:${info.ib}">${info.icon}</div>
+      <div class="src-name">${info.name}</div>
+      <div class="src-score" style="color:${info.color}">${sc.correct}/25</div>
+    </div>
+    <div class="src-bar"><div class="src-bar-fill" style="background:${info.bg};width:0%" data-pct="${pct}"></div></div>
+    <div class="mini-grid">${mini}</div>
+  </div>`;
+}
+
+function buildWrong(subjects){
+  const wCard=document.getElementById('wrongCard');
+  const wList=document.getElementById('wrongList');
+  let items=[];
+  subjects.forEach(s=>{
+    const info=INFO[s],key=KEYS[s];
+    scores[s].answers.forEach((v,i)=>{
+      if(v!==key[i])items.push({info,qnum:i+1,my:v,correct:key[i]});
+    });
+  });
+  if(!items.length){wCard.style.display='none';return;}
+  wCard.style.display='block';
+  wList.innerHTML=items.map(w=>`
+    <div class="wrong-row">
+      <span class="wrong-sub" style="background:${w.info.color}">${w.info.name}</span>
+      <span class="wrong-qnum">${w.qnum}번</span>
+      <span class="wrong-detail">내 답: <span class="my-ans">${w.my}번</span> → 정답: <span class="cor-ans">${w.correct}번</span></span>
+    </div>`).join('');
+}
+
+function animateBars(){
+  setTimeout(()=>{
+    document.querySelectorAll('.src-bar-fill').forEach(el=>{el.style.width=el.dataset.pct+'%';});
+  },250);
+}
+
+function getMsg(pct){
+  if(pct===100)return{emoji:'🏆',msg:'완벽해요! 만점! 🎊'};
+  if(pct>=80)return{emoji:'🌟',msg:'훌륭해요! 조금만 더!'};
+  if(pct>=60)return{emoji:'👍',msg:'잘했어요! 계속 연습해요!'};
+  if(pct>=40)return{emoji:'💪',msg:'더 열심히 해봐요!'};
+  return{emoji:'📚',msg:'다시 한번 도전해봐요!'};
+}
+
+function redoSubj(subj){
+  delete scores[subj];delete graded[subj];
+  inputs[subj]=Array(25).fill(0);
+  gotoAnswer(subj);
+}
+</script>
+</body>
+</html>
